@@ -45,8 +45,8 @@ Ela permite criar códigos curtos para URLs e redirecionar automaticamente quand
 
 1. Clone este repositório:
 ```
-git clone https://github.com/seu-usuario/url-shortener-go.git
-cd url-shortener-go
+git clone https://github.com/Whofelisberto/API-shorten-url.git
+cd API-shorten-url
 ```
 
 2.Instale as dependências:
