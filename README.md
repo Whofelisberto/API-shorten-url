@@ -5,7 +5,7 @@ Ela permite criar códigos curtos para URLs e redirecionar automaticamente quand
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades 
 
 - Criar um código curto para uma URL (`POST /api/shorten`)  
 - Redirecionar automaticamente para a URL original (`GET /{code}`)  
