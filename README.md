@@ -38,11 +38,13 @@ Ela permite criar códigos curtos para URLs e redirecionar automaticamente quand
   {
     "data": "abcXYZ12"
   }
+ ```
 
 ###
-1.handleGet → Recebe um código e redireciona para a URL original.
-2.genCode → Gera um código curto aleatório com 8 caracteres.
-3.sendJSON → Envia respostas JSON padronizadas.
+
+1. handleGet → Recebe um código e redireciona para a URL original.
+2. genCode → Gera um código curto aleatório com 8 caracteres.
+3. sendJSON → Envia respostas JSON padronizadas.
 
 
 
