@@ -14,13 +14,10 @@ func main(){
 		}
 		slog.Info("all systems offline")
 }
-
 func run () error {
 	db := make(map[string]string)
 
-
  handler := api.NewHandler(db)
-
 
  s := http.Server {
 	ReadTimeout: 10 * time.Second,
