@@ -7,8 +7,15 @@ Ela permite criar códigos curtos para URLs e redirecionar automaticamente quand
 
 ## 🚀 Funcionalidades 
 
-- Criar um código curto para uma URL (`POST /api/shorten`)  
-- Redirecionar automaticamente para a URL original (`GET /{code}`)  
+- Criar um código curto para uma URL (`POST /api/shorten`)
+ ```
+ curl -X POST http://localhost:8080/api/shorten \
+-d '{"url": "https://www.google.com"}'
+ ```
+- Redirecionar automaticamente para a URL original (`GET /{code}`)
+ ```
+ curl http://localhost:8080/abcXYZ12
+ ```  
 - Tratamento de erros com respostas em **JSON**  
 - Middleware do **Chi** para:
   - Logs
@@ -29,10 +36,7 @@ Ela permite criar códigos curtos para URLs e redirecionar automaticamente quand
 
 - **NewHandler** → Cria o roteador e registra os endpoints.
 - **handlePost** → Recebe a URL em JSON, gera um código aleatório e retorna no formato:
- ```
- curl -X POST http://localhost:8080/api/shorten \
--d '{"url": "https://www.google.com"}'
- ```
+
 
   ```json
   {
