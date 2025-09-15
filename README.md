@@ -29,6 +29,11 @@ Ela permite criar códigos curtos para URLs e redirecionar automaticamente quand
 
 - **NewHandler** → Cria o roteador e registra os endpoints.
 - **handlePost** → Recebe a URL em JSON, gera um código aleatório e retorna no formato:
+ ```
+ curl -X POST http://localhost:8080/api/shorten \
+-d '{"url": "https://www.google.com"}'
+ ```
+
   ```json
   {
     "data": "abcXYZ12"
