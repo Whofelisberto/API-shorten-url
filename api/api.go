@@ -3,25 +3,26 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"http-golang/store"
 	"log/slog"
-	"math/rand"
 	"net/http"
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/redis/go-redis/v9"
 )
 
+func NewHandler(store store.Store) http.Handler {
+	r := chi.NewMux()
 
-func NewHandler(db map[string]string) http.Handler {
-  r := chi.NewMux()
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Logger)
 
- r.Use(middleware.Recoverer)
- r.Use(middleware.RequestID)
- r.Use(middleware.Logger)
-
- r.Post("/api/shorten", handlePost(db))
- r.Get("/{code}", handleGet(db))
+	r.Post("/api/shorten", handlePost(store))
+	r.Get("/{code}", handleGet(store))
 
 	return r
 }
@@ -32,7 +33,7 @@ type PostBody struct {
 
 type Response struct {
 	Error string `json:"error,omitempty"`
-	Data any `json:"data,omitempty"`
+	Data  any    `json:"data,omitempty"`
 }
 
 func sendJSON(w http.ResponseWriter, resp Response, status int) {
@@ -44,40 +45,42 @@ func sendJSON(w http.ResponseWriter, resp Response, status int) {
 	}
 }
 
-// func de post
-func handlePost(db map[string]string) http.HandlerFunc { return func (w http.ResponseWriter, r *http.Request) {
-	var body PostBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		sendJSON(w, Response{Error: "invalid request body"}, http.StatusUnprocessableEntity)
-		return
+func handlePost(store store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body PostBody
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			sendJSON(w, Response{Error: "invalid request body"}, http.StatusUnprocessableEntity)
+			return
+		}
+
+		if _, err := url.ParseRequestURI(body.URL); err != nil {
+			sendJSON(w, Response{Error: "invalid URL passed"}, http.StatusBadRequest)
+			return
+		}
+
+		code, err := store.SaveShortenedURL(r.Context(), body.URL)
+		if err != nil {
+			sendJSON(w, Response{Error: "failed to save url"}, http.StatusInternalServerError)
+			return
+		}
+		sendJSON(w, Response{Data: code}, http.StatusCreated)
 	}
-if  _, err:= url.Parse(body.URL); err != nil {
-	sendJSON (w, Response{Error: "invalid URL passed"}, http.StatusBadRequest)
-}
- code := genCode()
- db[code] = body.URL
- sendJSON(w, Response{Data: code}, http.StatusCreated)
-}}
-
-const characters  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func genCode() string {
-	const n = 8
-	byts := make([]byte, n)
-	for i := range n {
-		byts[i] = characters[rand.Intn(len(characters))]
-
-	}
-	return string(byts)
 }
 
-// func de get
-func handleGet(db map[string]string) http.HandlerFunc { return func (w http.ResponseWriter, r *http.Request) {
-	code := chi.URLParam(r, "code")
-	data, ok := db[code]
-	if !ok {
-		http.Error(w, "url não encontrada", http.StatusNotFound)
-		return
+func handleGet(store store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		code := chi.URLParam(r, "code")
+
+		fullURL, err := store.GetFullURL(r.Context(), code)
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				http.Error(w, "url não encontrada", http.StatusNotFound)
+				return
+			}
+			sendJSON(w, Response{Error: "failed to retrieve url"}, http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, fullURL, http.StatusPermanentRedirect)
 	}
-	http.Redirect(w, r, data, http.StatusPermanentRedirect)
-}}
+}
